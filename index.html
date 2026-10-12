@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Generator SPT</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f4f4f2;--card:#fff;--tx:#1a1a1a;--mut:#666;--bd:#ccc;--ac:#1a56a0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1c1e;--card:#2a2a2d;--tx:#eee;--mut:#aaa;--bd:#444;--ac:#6aa7ff}}
+:root[data-theme="dark"]{--bg:#1c1c1e;--card:#2a2a2d;--tx:#eee;--mut:#aaa;--bd:#444;--ac:#6aa7ff}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,Arial,sans-serif}
+.form{max-width:760px;margin:0 auto;padding:12px}
+h2{font-size:15px;margin:16px 0 6px;color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px;margin-bottom:8px}
+label{display:block;font-size:12px;color:var(--mut);margin:6px 0 2px}
+input,textarea{width:100%;box-sizing:border-box;padding:7px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--tx);font:inherit}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+button{padding:9px 14px;border:0;border-radius:8px;background:var(--ac);color:#fff;font:inherit;cursor:pointer}
+button.s{background:transparent;color:#c33;border:1px solid var(--bd);padding:4px 8px;font-size:12px}
+.note{font-size:12px;color:var(--mut)}
+.wrap{overflow-x:auto;padding:12px}
+.paper{background:#fff;color:#000;width:21cm;min-height:29.7cm;margin:0 auto;padding:1.5cm 2cm;box-sizing:border-box;font:12pt/1.35 Arial,sans-serif;box-shadow:0 2px 10px #0004}
+.paper .kop{text-align:center;border-bottom:3px double #000;padding-bottom:4px;margin-bottom:12px}
+.kop b{display:block;font-size:17pt;line-height:1.15}.kop small{font-size:10pt}
+.ttl{text-align:center;margin:10px 0}.ttl b{text-decoration:underline}
+.paper table.r{width:100%;border-collapse:collapse;margin:6px 0}
+.paper table.r th,.paper table.r td{border:1px solid #000;padding:3px 6px;text-align:center;font-size:11pt}
+.paper table.r td.l{text-align:left}
+.paper table.r tr{break-inside:avoid}
+.lbl{display:grid;grid-template-columns:3cm 1fr;gap:0;margin-bottom:8px}
+.paper ol{margin:0;padding-left:1.2em;text-align:justify}
+.paper ol li{margin-bottom:6px}
+.ttd{margin:18px 0 0 9.5cm;line-height:1.3}
+.ttd .sp{height:2.3cm}
+@media print{@page{size:A4;margin:0}body{background:#fff}.form{display:none}.wrap{padding:0;overflow:visible}.paper{box-shadow:none;margin:0;width:auto;min-height:0;padding:1.5cm 2cm}}
+</style></head><body>
+<div class="form">
+<h2>1. Komponen YANG BERUBAH tiap dokumen</h2>
+<div class="card">
+<div class="g"><div><label>Nomor surat (…/INDAG)</label><input id="nomor" value="094"></div>
+<div><label>Lokasi (Kecamatan)</label><input id="lokasi" value="Sirimau"></div>
+<div><label>Berlaku mulai</label><input id="t1" type="date" value="2026-01-12"></div>
+<div><label>Berlaku sampai</label><input id="t2" type="date" value="2026-01-14"></div>
+<div><label>Dikeluarkan di</label><input id="kota" value="Ambon"></div>
+<div><label>Tanggal dikeluarkan</label><input id="t3" type="date" value="2026-01-12"></div></div>
+</div>
+<h2>2. Petugas (urutan 1 = penanggung jawab)</h2>
+<div id="plist"></div>
+<button onclick="addP()">+ Tambah petugas</button>
+<h2>3. Penandatangan</h2>
+<div class="card">
+<label>Jabatan</label><input id="kj" value="Kepala Dinas">
+<label>Nama</label><input id="kn" value="Drs. Herman Semmy Tetelepta, M.Si.">
+<div class="g"><div><label>Pangkat</label><input id="kp" value="Pembina Tk. I"></div>
+<div><label>NIP</label><input id="kc" value="19720901 199203 1 004"></div></div>
+</div>
+<h2>4. Komponen TETAP (boleh diubah bila perlu)</h2>
+<div class="card">
+<label>Kop: instansi</label><input id="k1" value="PEMERINTAH KOTA AMBON">
+<label>Kop: dinas</label><input id="k2" value="DINAS PERINDUSTRIAN DAN PERDAGANGAN">
+<label>Kop: alamat</label><input id="k3" value="Jl. Sultan Hairun No. 1 KodePos 97126 email: indagkota@gmail.com">
+<label>Dasar (satu baris = satu butir)</label><textarea id="dasar" rows="8"></textarea>
+<label>Menimbang</label><textarea id="menimbang" rows="3"></textarea>
+<label>Untuk (satu baris = satu butir; {lokasi} otomatis diganti)</label><textarea id="untuk" rows="5"></textarea>
+</div>
+<button onclick="window.print()">Cetak / Simpan PDF</button>
+<p class="note">Tips: saat cetak, matikan opsi "Header dan footer" di dialog cetak.</p>
+</div>
+<div class="wrap"><div class="paper" id="out"></div></div>
+<script>
+var P=[["Pastoralia. W. Hahijary, S.Sos","19720618 199603 1 003","Pembina/IVa","Kepala Bidang Pendaftaran Perusahaan, PKL & Pengawasan","Penanggung Jawab"],
+["Various Khomiksaris, S.T.","19820322 200904 1 002","Penata Tk.I III/d","Pengawas Kemetrologian Ahli Muda","Anggota"],
+["Pattresya Siwabessy, S.Si","19880505 202012 2 019","Penata Muda III/a","Penguji Mutu Barang Ahli Pertama","Anggota"],
+["Ardin Junaidi, S.T.","19920626 202506 1 002","Penata Muda III/a","Penguji Mutu Barang Ahli Pertama","Anggota"],
+["David Millian Anaktototy, S.T., B.Sc","19980316 202506 1 003","Penata Muda III/a","Penguji Mutu Barang Ahli Pertama","Anggota"],
+["Dwi Nugraheni, S.T.","20010102 202506 2 001","Penata Muda III/a","Penguji Mutu Barang Ahli Pertama","Anggota"],
+["Firda Zulaiha Rumasukun, S.T.","20000416 202506 2 006","Penata Muda III/a","Penguji Mutu Barang Ahli Pertama","Anggota"],
+["Mawardi, S.T.","19900813 202506 1 001","Penata Muda III/a","Penguji Mutu Barang Ahli Pertama","Anggota"],
+["Monita Gloria Maahury, S.T.","20001118 202506 2 004","Penata Muda III/a","Penguji Mutu Barang Ahli Pertama","Anggota"],
+["Nailah Rofilah Amiruddin, S.T., M.T.","20000428 202506 2 009","Penata Muda III/a","Penguji Mutu Barang Ahli Pertama","Anggota"],
+["Prayudi Novem I. Pangaribuan, S.T.","19961123 202506 1 001","Penata Muda III/a","Penguji Mutu Barang Ahli Pertama","Anggota"],
+["Rano Putra Dahuna, S.T.","20010925 202506 1 002","Penata Muda III/a","Penguji Mutu Barang Ahli Pertama","Anggota"],
+["Riska Renata Yasin, S.T.","19970405 202506 2 005","Penata Muda III/a","Penguji Mutu Barang Ahli Pertama","Anggota"],
+["Syahril Soulisa, S.T.","19970524 202506 1 003","Penata Muda III/a","Penguji Mutu Barang Ahli Pertama","Anggota"]];
+var D=["Undang-Undang Nomor 08 Tahun 1999 tentang Perlindungan Konsumen (Lembaran Negara Republik Indonesia Nomor 42 dan Tambahan Lembaran Negara Republik Indonesia Nomor 3821);",
+"Undang-Undang Nomor 20 Tahun 2014 tentang Standardisasi dan Penilaian Kesesuaian (Lembaran Negara Republik Indonesia Nomor 2756);",
+"Peraturan Pemerintah Nomor 58 Tahun 2001 tentang Pembinaan dan Pengawasan Penyelenggaraan Perlindungan Konsumen (Lembaran Negara Republik Indonesia Nomor 94);",
+"Peraturan Menteri Perdagangan Nomor 72/M-DAG/PER/9/2015 tentang Perubahan Ketiga atas Peraturan Menteri Perdagangan Nomor 47/M-DAG/PER/3/2014 tentang Perubahan Standardisasi Jasa Bidang Perdagangan dan Pengawasan Standar Nasional Indonesia (SNI) Wajib terhadap Barang dan Jasa yang Diperdagangkan;",
+"Peraturan Menteri Perdagangan Nomor 69 Tahun 2018 tentang Pengawasan Barang Beredar dan/atau Jasa;",
+"Peraturan Menteri Pendayagunaan Aparatur Negara dan Reformasi birokrasi Republik Indonesia Nomor 45 Tahun 2020 tentang Jabatan Fungsional Pengawas Perdagangan;",
+"Peraturan Badan Pengawas Obat dan Makanan Nomor 31 Tahun 2018 tentang Label Pangan Olahan;",
+"Peraturan Badan Pengawas Obat dan Makanan Nomor 6 Tahun 2024 tentang Perubahan Kedua atas Peraturan Badan Pengawas Obat dan Makanan Nomor 31 Tahun 2018 tentang Label Pangan Olahan."];
+var U=["Melakukan peninjauan lokasi serta pemeriksaan administrasi terhadap peredaran dan penjualan barang dan/atau jasa sesuai dengan ketentuan Perundang-Undangan yang berlaku di Kecamatan {lokasi}.",
+"Melaksanakan perintah tugas ini sebaik-baiknya dan penuh rasa tanggung jawab sesuai dengan ketentuan dan peraturan yang berlaku.",
+"Melaporkan hasil pelaksanaan kegiatan sebagaimana point 1 kepada Kepala Dinas Perindustrian dan Perdagangan Kota Ambon."];
+var $=function(i){return document.getElementById(i)};
+$("dasar").value=D.join("\n");$("untuk").value=U.join("\n");
+$("menimbang").value="Bahwa untuk memastikan barang beredar dan/atau jasa di pasaran telah memenuhi ketentuan standar sesuai perundang-undangan yang berlaku, maka perlu dilakukan pengawasan terhadap peredaran dan penjualan barang dan/atau jasa oleh petugas di bawah ini:";
+var BL=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+function e(s){return String(s).replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
+function pd(s){var a=(s||"").split("-");return a.length<3?null:{y:+a[0],m:+a[1]-1,d:+a[2]}}
+function fd(o){return o.d+" "+BL[o.m]+" "+o.y}
+function rng(a,b){if(!a)return"...";if(!b||(a.y==b.y&&a.m==b.m&&a.d==b.d))return fd(a);
+if(a.y==b.y&&a.m==b.m)return a.d+" sampai "+b.d+" "+BL[b.m]+" "+b.y;
+if(a.y==b.y)return a.d+" "+BL[a.m]+" sampai "+b.d+" "+BL[b.m]+" "+b.y;return fd(a)+" sampai "+fd(b)}
+function lines(id){return $(id).value.split("\n").filter(function(x){return x.trim()})}
+function nl(s){return e(s)}
+function render(){
+var lok=$("lokasi").value,t1=pd($("t1").value),t2=pd($("t2").value),t3=pd($("t3").value);
+var rows=P.map(function(p,i){return "<tr><td>"+(i+1)+"</td><td class='l'>"+nl(p[0])+"<br>NIP. "+nl(p[1])+"</td><td>"+nl(p[2])+"</td><td>"+nl(p[3])+"</td><td>"+nl(p[4])+"</td></tr>"}).join("");
+$("out").innerHTML=
+"<div class='kop'><b>"+e($("k1").value)+"</b><b>"+e($("k2").value)+"</b><small>"+e($("k3").value)+"</small></div>"+
+"<div class='ttl'><b>SURAT PERINTAH TUGAS</b><br>Nomor "+e($("nomor").value)+" / INDAG</div>"+
+"<div class='lbl'><div>Dasar&nbsp;&nbsp;&nbsp;:</div><ol>"+lines("dasar").map(function(x){return "<li>"+e(x)+"</li>"}).join("")+"</ol></div>"+
+"<div class='lbl'><div>Menimbang:</div><div style='text-align:justify'>"+e($("menimbang").value)+"</div></div>"+
+"<div class='ttl'><b style='text-decoration:none'>MENUGASKAN</b></div>"+
+"<table class='r'><tr><th>No</th><th>Nama</th><th>Pangkat/Gol</th><th>Jabatan</th><th>Keterangan</th></tr>"+rows+"</table>"+
+"<div class='lbl' style='margin-top:10px'><div>Untuk&nbsp;&nbsp;&nbsp;:</div><ol>"+lines("untuk").map(function(x){return "<li>"+e(x.split("{lokasi}").join(lok))+"</li>"}).join("")+"</ol></div>"+
+"<p style='text-align:justify'>Surat perintah tugas ini berlaku sejak tanggal "+rng(t1,t2)+". Demikian untuk dilaksanakan sebagaimana mestinya.</p>"+
+"<div class='ttd'>Dikeluarkan di "+e($("kota").value)+"<br>Pada tanggal "+(t3?fd(t3):"...")+"<br>"+e($("kj").value)+"<div class='sp'></div><b><u>"+e($("kn").value)+"</u></b><br><b>"+e($("kp").value)+"<br>NIP. "+e($("kc").value)+"</b></div>"}
+var F=["Nama","NIP","Pangkat/Gol","Jabatan","Keterangan"];
+function plist(){$("plist").innerHTML=P.map(function(p,i){
+return "<div class='card'><b>"+(i+1)+"</b> <button class='s' style='float:right' onclick='delP("+i+")'>Hapus</button>"+
+F.map(function(f,j){return "<label>"+f+"</label><input value=\""+p[j].replace(/"/g,"&quot;")+"\" oninput='P["+i+"]["+j+"]=this.value;render()'>"}).join("")+"</div>"}).join("")}
+function addP(){P.push(["","","Penata Muda III/a","Penguji Mutu Barang Ahli Pertama","Anggota"]);plist();render()}
+function delP(i){P.splice(i,1);plist();render()}
+document.querySelectorAll(".form input,.form textarea").forEach(function(x){x.addEventListener("input",render)});
+plist();render();
+</script></body></html>
